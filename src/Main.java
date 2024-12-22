@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
+//dodanie brancha
+
 public class Main {
     private static long lastTime = System.currentTimeMillis();
     private static int frames = 0;
