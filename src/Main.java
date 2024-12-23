@@ -9,6 +9,8 @@ public class Main {
     private static long lastTime = System.currentTimeMillis();
     private static int frames = 0;
     private static int fps = 0;
+    private static ArrayList<Rectangle> obstacles = new ArrayList<>();
+    private static String typedCode = "";
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Piłki - Grawitacja i Kolizje");
@@ -16,25 +18,73 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         ArrayList<Circle> circles = new ArrayList<>();
-        ArrayList<Rectangle> obstacles = new ArrayList<>();
         double gravity = 0.5;
-        obstacles.add(new Rectangle(100, 500, 100, 20));
-        obstacles.add(new Rectangle(400, 700, 150, 30));
-        obstacles.add(new Rectangle(800, 200, 120, 25));
-        obstacles.add(new Rectangle(1100, 600, 200, 25));
-        obstacles.add(new Rectangle(1600, 800, 180, 30));
 
-        JPanel panel = getjPanel(circles, obstacles);
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                for (Circle circle : circles) {
+                    g.setColor(circle.color);
+                    g.fillOval(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
+                }
+                for (Rectangle obstacle : obstacles) {
+                    g.setColor(Color.RED);
+                    g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("Arial", Font.PLAIN, 20));
+                g.drawString("FPS: " + fps, getWidth() - 120, 30);
+                g.drawString("Piłki: " + circles.size(), 10, 30);
+            }
+        };
 
+        panel.setBackground(Color.WHITE);
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                circles.add(new Circle(e.getX(), e.getY(), 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
-                panel.repaint();
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    circles.add(new Circle(e.getX(), e.getY(), 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                    panel.repaint();
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    obstacles.add(new Rectangle(e.getX() - 50, e.getY() - 25, 100, 50));
+                    panel.repaint();
+                }
             }
         });
+        panel.addMouseWheelListener(e -> {
+            Point mousePos = e.getPoint();
+            Iterator<Rectangle> iterator = obstacles.iterator();
+            while (iterator.hasNext()) {
+                Rectangle obstacle = iterator.next();
+                if (obstacle.contains(mousePos)) {
+                    iterator.remove();
+                    panel.repaint();
+                    break;
+                }
+            }
+        });
+        panel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                char keyChar = e.getKeyChar();
+                typedCode += keyChar;
+                if (typedCode.length() > 5) {
+                    typedCode = typedCode.substring(typedCode.length() - 5);
+                }
+                if (typedCode.equals("kokon")) {
+                    Random rand = new Random();
+                    for (int i = 0; i < 1000; i++) {
+                        circles.add(new Circle(rand.nextInt(panel.getWidth()), rand.nextInt(panel.getHeight()), 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                    }
+                    panel.repaint();
+                    typedCode = "";
+                }
+            }
+        });
+        panel.setFocusable(true);
 
-        Timer timer = new Timer(30, _ -> {
+        Timer timer = new Timer(1, _ -> {
             Iterator<Circle> iterator = circles.iterator();
             while (iterator.hasNext()) {
                 Circle c1 = iterator.next();
@@ -87,34 +137,11 @@ public class Main {
         frame.setVisible(true);
     }
 
-    private static JPanel getjPanel(ArrayList<Circle> circles, ArrayList<Rectangle> obstacles) {
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                for (Circle circle : circles) {
-                    g.setColor(circle.color);
-                    g.fillOval(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
-                }
-                g.setColor(Color.RED);
-                for (Rectangle obstacle : obstacles) {
-                    g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                }
-                g.setColor(Color.BLACK);
-                g.setFont(new Font("Arial", Font.PLAIN, 20));
-                g.drawString("FPS: " + fps, getWidth() - 120, 30);
-                g.setColor(Color.BLACK);
-                g.drawString("Piłki: " + circles.size(), 10, 30);
-            }
-        };
-        panel.setBackground(Color.WHITE);
-        return panel;
-    }
-
     private static Color getRandomColor() {
         Random random = new Random();
         return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
+
     private static double getRandomVelocity() {
         Random random = new Random();
         return random.nextDouble() * 4 - 2;
@@ -124,6 +151,7 @@ public class Main {
         Random random = new Random();
         return 1 + random.nextDouble() * 2;
     }
+
     private static boolean checkCollision(Circle c1, Circle c2) {
         int dx = c1.x - c2.x;
         int dy = c1.y - c2.y;
@@ -131,6 +159,7 @@ public class Main {
         int radiusSum = c1.radius + c2.radius;
         return distanceSquared < radiusSum * radiusSum;
     }
+
     private static void resolveCollision(Circle c1, Circle c2) {
         double dx = c2.x - c1.x;
         double dy = c2.y - c1.y;
@@ -153,6 +182,7 @@ public class Main {
         c2.dx -= impulse * nx * c1.mass;
         c2.dy -= impulse * ny * c1.mass;
     }
+
     private static boolean checkCollisionWithRectangle(Circle circle, Rectangle rect) {
         int nearestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
         int nearestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
@@ -162,6 +192,7 @@ public class Main {
 
         return (dx * dx + dy * dy) < (circle.radius * circle.radius);
     }
+
     private static void resolveCollisionWithRectangle(Circle circle, Rectangle rect) {
         int centerX = circle.x;
         int centerY = circle.y;
@@ -178,23 +209,24 @@ public class Main {
         circle.dx = reflectionSpeed * Math.cos(angleOfReflection);
         circle.dy = reflectionSpeed * Math.sin(angleOfReflection);
     }
-}
-class Circle {
-    int x, y;
-    int radius;
-    Color color;
-    double dx, dy;
-    double mass;
-    long creationTime;
 
-    Circle(int x, int y, int radius, Color color, double dx, double dy, double mass) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.dx = dx;
-        this.dy = dy;
-        this.mass = mass;
-        this.creationTime = System.currentTimeMillis();
+    static class Circle {
+        int x, y;
+        int radius;
+        Color color;
+        double dx, dy;
+        double mass;
+        long creationTime;
+
+        Circle(int x, int y, int radius, Color color, double dx, double dy, double mass) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.color = color;
+            this.dx = dx;
+            this.dy = dy;
+            this.mass = mass;
+            this.creationTime = System.currentTimeMillis();
+        }
     }
 }
