@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
-//dodanie brancha
-
 public class Main {
     private static long lastTime = System.currentTimeMillis();
     private static int frames = 0;
@@ -16,27 +14,25 @@ public class Main {
         JFrame frame = new JFrame("Piłki - Grawitacja i Kolizje");
         frame.setSize(1920, 1080);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         ArrayList<Circle> circles = new ArrayList<>();
         ArrayList<Rectangle> obstacles = new ArrayList<>();
         double gravity = 0.5;
-        obstacles.add(new Rectangle(100, 500, 100, 20));
-        obstacles.add(new Rectangle(400, 700, 150, 30));
-        obstacles.add(new Rectangle(800, 200, 120, 25));
-        obstacles.add(new Rectangle(1100, 600, 200, 25));
-        obstacles.add(new Rectangle(1600, 800, 180, 30));
-
         JPanel panel = getjPanel(circles, obstacles);
-
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                circles.add(new Circle(e.getX(), e.getY(), 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    circles.add(new Circle(e.getX(), e.getY(), 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    int width = 100;
+                    int height = 20;
+                    obstacles.add(new Rectangle(e.getX() - width / 2, e.getY() - height / 2, width, height));
+                }
                 panel.repaint();
             }
         });
 
-        Timer timer = new Timer(30, _ -> {
+        Timer timer = new Timer(1, _ -> {
             Iterator<Circle> iterator = circles.iterator();
             while (iterator.hasNext()) {
                 Circle c1 = iterator.next();
@@ -117,6 +113,7 @@ public class Main {
         Random random = new Random();
         return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
+
     private static double getRandomVelocity() {
         Random random = new Random();
         return random.nextDouble() * 4 - 2;
@@ -126,6 +123,7 @@ public class Main {
         Random random = new Random();
         return 1 + random.nextDouble() * 2;
     }
+
     private static boolean checkCollision(Circle c1, Circle c2) {
         int dx = c1.x - c2.x;
         int dy = c1.y - c2.y;
@@ -133,6 +131,7 @@ public class Main {
         int radiusSum = c1.radius + c2.radius;
         return distanceSquared < radiusSum * radiusSum;
     }
+
     private static void resolveCollision(Circle c1, Circle c2) {
         double dx = c2.x - c1.x;
         double dy = c2.y - c1.y;
@@ -155,6 +154,7 @@ public class Main {
         c2.dx -= impulse * nx * c1.mass;
         c2.dy -= impulse * ny * c1.mass;
     }
+
     private static boolean checkCollisionWithRectangle(Circle circle, Rectangle rect) {
         int nearestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
         int nearestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
@@ -164,6 +164,7 @@ public class Main {
 
         return (dx * dx + dy * dy) < (circle.radius * circle.radius);
     }
+
     private static void resolveCollisionWithRectangle(Circle circle, Rectangle rect) {
         int centerX = circle.x;
         int centerY = circle.y;
@@ -175,12 +176,13 @@ public class Main {
         int dy = centerY - nearestY;
 
         double angleOfReflection = Math.atan2(dy, dx);
-        double reflectionSpeed = circle.radius * 0.1;
+        double reflectionSpeed = Math.sqrt(circle.dx * circle.dx + circle.dy * circle.dy) * 1;
 
         circle.dx = reflectionSpeed * Math.cos(angleOfReflection);
         circle.dy = reflectionSpeed * Math.sin(angleOfReflection);
     }
 }
+
 class Circle {
     int x, y;
     int radius;
