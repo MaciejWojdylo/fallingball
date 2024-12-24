@@ -92,12 +92,8 @@ public  class MainFrame extends JFrame {
         });
         return resolutionButton;
     }
-
-    public static void main(String[] args) {
-        startApplication();
-    }
-    private static void startApplication(){
-        MainFrame frame = new MainFrame();
+    public static void startApplication(){
+        new MainFrame();
     }
 }
 class ResolutionFrame extends JFrame {
