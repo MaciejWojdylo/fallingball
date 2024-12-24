@@ -51,6 +51,7 @@ public class GameFrame extends JFrame {
                         for (Rectangle rect : obstacles) {
                             if (rect.contains(e.getPoint())) {
                                 rectangleClicked = true;
+                                obstacles.remove(rect);
                                 break;
                             }
                         }
