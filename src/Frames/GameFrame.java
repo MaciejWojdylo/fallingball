@@ -1,6 +1,7 @@
 package Frames;
 
 import Shapes.Circle;
+import Theme.Theme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,32 +18,31 @@ public class GameFrame extends JFrame {
     private static int frames = 0;
     private static int fps = 0;
     private static String typedCode = "";
+    private static final int lowerBoundRadius = 29;
+    private static final int upperBoundRadius = 50;
 
     GameFrame(Dimension screenSize) {
         setTitle("Game");
         setSize(screenSize);
-        ImageIcon icon  = new ImageIcon("src/Images/icon.png");
         ArrayList<Circle> circles = new ArrayList<>();
         ArrayList<Rectangle> obstacles = new ArrayList<>();
         double gravity = 0.5;
         JPanel panel = getjPanel(circles, obstacles);
         JButton infoButton = new JButton();
-        infoButton.setText("");
-        infoButton.setIcon(icon);
-        infoButton.setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
-        infoButton.setBackground(Color.BLACK);
+        infoButton.setText("ⓘ");
+        infoButton.setForeground(Theme.ColorGameFrame.infoButtonForeground);
+        infoButton.setBackground(Theme.ColorGameFrame.infoButtonBackground);
         infoButton.setBorderPainted(false);
         infoButton.addActionListener(_ -> showInfoDialog());
         infoButton.setFocusPainted(false);
         panel.add(infoButton);
-
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (isInRectangle(e.getX(), e.getY())) {
                         Random rand = new Random();
-                        int radius = rand.nextInt(30, 50) + 1;
+                        int radius = rand.nextInt(lowerBoundRadius, upperBoundRadius) + 1;
                         circles.add(new Circle(e.getX(), e.getY(), radius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
                     }
                 } else if (SwingUtilities.isRightMouseButton(e)) {
@@ -94,7 +94,8 @@ public class GameFrame extends JFrame {
                     for (int i = 0; i < 1000; i++) {
                         int x = rand.nextInt(getRectangleX(), getRectangleX() + getRectangleWidth());
                         int y = rand.nextInt(getRectangleY(), getRectangleY() + getRectangleHeight());
-                        circles.add(new Circle(x, y, 50, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                        int randomRadius = new Random().nextInt(lowerBoundRadius,upperBoundRadius) + 1;
+                        circles.add(new Circle(x, y, randomRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
                     }
                     panel.repaint();
                     typedCode = "";
@@ -102,12 +103,13 @@ public class GameFrame extends JFrame {
             }
         });
         panel.setFocusable(true);
-
-        Timer timer = new Timer(1, _ -> {
+        int delayForTimer = 1;
+        Timer timer = new Timer(delayForTimer, _ -> {
             Iterator<Circle> iterator = circles.iterator();
             while (iterator.hasNext()) {
                 Circle circle = iterator.next();
-                if (System.currentTimeMillis() - circle.creationTime > 20000) {
+                int liveTime = 20000;
+                if (System.currentTimeMillis() - circle.creationTime > liveTime) {
                     iterator.remove();
                     continue;
                 }
@@ -161,7 +163,7 @@ public class GameFrame extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(Color.BLACK);
+                g.setColor(Theme.ColorGameFrame.panel);
                 g.fillRect(getRectangleX(), getRectangleY(), getRectangleWidth(), getRectangleHeight());
 
                 for (Circle circle : circles) {
@@ -169,19 +171,19 @@ public class GameFrame extends JFrame {
                     g.fillOval(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
                 }
 
-                g.setColor(Color.RED);
+                g.setColor(Theme.ColorGameFrame.rectangle);
                 for (Rectangle obstacle : obstacles) {
                     g.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
                 }
 
-                g.setColor(Color.WHITE);
+                g.setColor(Theme.ColorGameFrame.fpsColor);
                 g.setFont(new Font("Arial", Font.PLAIN, 20));
                 g.drawString("FPS: " + fps, getWidth() - 120, 30);
-                g.setColor(Color.WHITE);
-                g.drawString("Piłki: " + circles.size(), 10, 30);
+                g.setColor(Theme.ColorGameFrame.ballsCounter);
+                g.drawString("Balls: " + circles.size(), 10, 30);
             }
         };
-        panel.setBackground(new Color(44, 44, 44));
+        panel.setBackground(Theme.ColorGameFrame.panelBackground);
         return panel;
     }
 
@@ -279,9 +281,11 @@ public class GameFrame extends JFrame {
     }
 
     private void showInfoDialog() {
-        JDialog infoDialog = new JDialog(this, "Zasady gry", true);
-        infoDialog.setSize(400, 300);
-        infoDialog.setBackground(Color.BLACK);
+        JDialog infoDialog = new JDialog(this, "Rules of the game", true);
+        int widthInfoDialog = 400;
+        int heightInfoDialog = 300;
+        infoDialog.setSize(widthInfoDialog, heightInfoDialog);
+        infoDialog.setBackground(Theme.ColorGameFrame.infoDialogBackground);
         infoDialog.setLocationRelativeTo(this);
         JTextArea textArea = getjTextArea(infoDialog);
         infoDialog.add(textArea, BorderLayout.CENTER);
@@ -301,10 +305,11 @@ public class GameFrame extends JFrame {
                 The balls disappear after 20 seconds
                 Click OK to close""");
         textArea.setEditable(false);
-        textArea.setBackground(Color.BLACK);
-        textArea.setForeground(new Color(200, 196, 196));
+        textArea.setBackground(Theme.ColorGameFrame.JTextAreaBackground);
+        textArea.setForeground(Theme.ColorGameFrame.JtextAreaForeground);
         textArea.setBackground(infoDialog.getBackground());
         textArea.setFont(new Font("Arial", Font.PLAIN, 16));
         return textArea;
+
     }
 }

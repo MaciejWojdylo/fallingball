@@ -5,7 +5,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 public  class MainFrame extends JFrame {
     private static Dimension gameResolutionSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -13,7 +12,7 @@ public  class MainFrame extends JFrame {
         MainFrame.gameResolutionSize = gameResolutionSize;
     }
 
-    public MainFrame() {
+    private MainFrame() {
         setTitle("Menu");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize);
@@ -100,43 +99,38 @@ class ResolutionFrame extends JFrame {
 
     public ResolutionFrame(Dimension screenSize) {
         setTitle("Select Resolution");
-        setSize(300, 400);
         setLocation(0, 0);
         setResizable(false);
-
+        String[] resolutionTable = {
+                "1366 x 768", "1440 x 900", "1600 x 900",
+                "1920 x 1080", "2560 x 1440", "3840 x 2160",
+                "5120 x 2880", "7680 x 4320"
+        };
         CheckboxGroup group = new CheckboxGroup();
-        Checkbox resolution1 = new Checkbox("1366 x 768", group, false);
-        Checkbox resolution2 = new Checkbox("1440 x 900", group, false);
-        Checkbox resolution3 = new Checkbox("1600 x 900", group, false);
-        Checkbox resolution4 = new Checkbox("1920 x 1080", group, false);
-        Checkbox resolution5 = new Checkbox("2560 x 1440", group, false);
-        Checkbox resolution6 = new Checkbox("3840 x 2160", group, false);
-
-        String[] resolutionTable = {"1366", "1440", "1600", "1920", "2560", "3840"};
-
+        Panel resolutionPanel = new Panel(new GridLayout(resolutionTable.length + 1, 1));
         int screenWidth = screenSize.width;
-        int max = -1;
-
-        for (int i = 0; i < resolutionTable.length; i++) {
-            if (Integer.parseInt(resolutionTable[i]) <= screenWidth) {
-                max = i;
+        int visableCheckboxes = 0;
+        for (String resolution : resolutionTable) {
+            String[] dimensions = resolution.split(" x ");
+            int width = Integer.parseInt(dimensions[0]);
+            if (width <= screenWidth) {
+                Checkbox checkbox = new Checkbox(resolution, group, false);
+                resolutionPanel.add(checkbox);
+                visableCheckboxes++;
             }
         }
-        Panel resolutionPanel = new Panel(new GridLayout(max + 2, 1));
-        if (max >= 0) resolutionPanel.add(resolution1);
-        if (max >= 1) resolutionPanel.add(resolution2);
-        if (max >= 2) resolutionPanel.add(resolution3);
-        if (max >= 3) resolutionPanel.add(resolution4);
-        if (max >= 4) resolutionPanel.add(resolution5);
-        if (max == 5) resolutionPanel.add(resolution6);
-
         JButton acceptButton = getjButton(group);
         resolutionPanel.add(acceptButton);
+        int elementHeight = 30;
+        int margin = 50;
+        int windowHeight = visableCheckboxes * elementHeight + margin;
+        setSize(300, Math.min(windowHeight, screenSize.height - 50));
         add(resolutionPanel);
     }
 
     private JButton getjButton(CheckboxGroup group) {
         JButton acceptButton = new JButton("Accept");
+        acceptButton.setPreferredSize(new Dimension(100, 150));
         acceptButton.setBackground(Color.BLACK);
         acceptButton.setForeground(Color.WHITE);
         acceptButton.setFocusPainted(false);
