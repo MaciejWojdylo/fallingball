@@ -17,4 +17,4 @@ jobs:
           java-version: '22'
 
       - name: Compile Java program
-        run: javac src/*.java
+        run: javac src/Main.java
