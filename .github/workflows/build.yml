@@ -15,6 +15,9 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
+          
+      - name: Create bin directory
+        run: mkdir -p bin
 
       - name: Compile Java program
         run: javac src/*.java
