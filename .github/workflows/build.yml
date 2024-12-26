@@ -17,7 +17,7 @@ jobs:
           java-version: '22'
 
       - name: changeTosrc
-        run: ls
+        run: echo ls
 
       - name: Compile Java program
-        run: javac Main.java
+        run: javac $(find . -name "*.java")
