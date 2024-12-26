@@ -18,7 +18,7 @@ jobs:
         java-version: '11'
 
     - name: Compile Java program
-      run: javac -d bin src/*.java
+      run: javac -d bin src/Main.java
 
     - name: Run tests
-      run: java -cp bin org.junit.runner.JUnitCore Main.java
+      run: java -cp bin org.junit.runner.JUnitCore Main
