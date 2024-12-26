@@ -18,6 +18,3 @@ jobs:
           
       - name: Create bin directory
         run: mkdir -p bin
-
-      - name: Compile Java program
-        run: javac -d bin src/*.java
