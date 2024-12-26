@@ -15,6 +15,3 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
-          
-      - name: Create bin directory
-        run: mkdir -p bin
