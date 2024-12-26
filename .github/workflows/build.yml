@@ -1,7 +1,5 @@
 name: Java CI
-
 on: [push, pull_request]
-
 jobs:
   build:
     name: BuildTest
@@ -15,3 +13,5 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
+      - name: Compile Java program
+        run: javac -d out src/**/*.java
