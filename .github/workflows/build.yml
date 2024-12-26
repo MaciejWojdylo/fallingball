@@ -15,8 +15,9 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
+
       - name: changeTosrc
-        run: cd src
+        run: ls
 
       - name: Compile Java program
         run: javac Main.java
