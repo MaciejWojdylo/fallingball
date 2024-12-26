@@ -15,9 +15,5 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
-
-      - name: changeTosrc
-        run: echo ls
-
       - name: Compile Java program
         run: javac -d out src/**/*.java
