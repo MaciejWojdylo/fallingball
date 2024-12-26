@@ -20,4 +20,4 @@ jobs:
         run: echo ls
 
       - name: Compile Java program
-        run: javac $(find . -name "*.java")
+        run: javac -d out src/**/*.java
