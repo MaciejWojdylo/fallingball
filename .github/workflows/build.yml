@@ -15,3 +15,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '22'
+
+      - name: Compile Java program
+        run: javac -d bin src/*.java
