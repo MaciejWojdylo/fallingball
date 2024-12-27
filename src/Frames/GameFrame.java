@@ -4,14 +4,13 @@ import Shapes.Circle;
 import Theme.Theme;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 public class GameFrame extends JFrame {
     private static long lastTime = System.currentTimeMillis();
@@ -21,6 +20,8 @@ public class GameFrame extends JFrame {
     private static final int lowerBoundRadius = 1;
     private static final int upperBoundRadius = 100;
     private int cursorRadius = 30;
+
+    private String currentShape = "oval";
 
 
     GameFrame(Dimension screenSize) {
@@ -38,8 +39,7 @@ public class GameFrame extends JFrame {
         infoButton.addActionListener(_ -> showInfoDialog());
         infoButton.setFocusPainted(false);
         panel.add(infoButton);
-
-        JLabel radiusLabel = new JLabel("Current radius: " + cursorRadius);
+        JLabel radiusLabel = new JLabel("Current size: " + cursorRadius);
         radiusLabel.setForeground(Theme.ColorGameFrame.radiusLabelForeground);
         panel.add(radiusLabel);
 
@@ -48,7 +48,7 @@ public class GameFrame extends JFrame {
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (isInRectangle(e.getX(), e.getY())) {
-                        circles.add(new Circle(e.getX(), e.getY(), cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                        circles.add(new Circle(e.getX(), e.getY(), cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass(), currentShape));
                     }
                 } else if (SwingUtilities.isRightMouseButton(e)) {
                     if (isInRectangle(e.getX(), e.getY())) {
@@ -92,7 +92,7 @@ public class GameFrame extends JFrame {
             } else {
                 cursorRadius = Math.max(cursorRadius - 1, lowerBoundRadius);
             }
-            radiusLabel.setText("Current radius: " + cursorRadius);
+            radiusLabel.setText("Current size: " + cursorRadius);
             panel.repaint();
         });
         panel.addMouseMotionListener(new MouseAdapter() {
@@ -107,13 +107,25 @@ public class GameFrame extends JFrame {
                 panel.repaint();
             }
         });
+        panel.setFocusTraversalKeysEnabled(false);
 
         panel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 char key = e.getKeyChar();
-                if(key == 'c'){
+                if (key == 'c') {
                     circles.clear();
+                }else if(key == 'x'){
+                    obstacles.clear();
+                }
+                else if (key == '\t') {
+                    if (currentShape.equals("oval")) {
+                        currentShape = "square";
+                    } else if (currentShape.equals("square")) {
+                        currentShape = "triangle";
+                    } else {
+                        currentShape = "oval";
+                    }
                 }
                 typedCode += key;
                 if (typedCode.length() > 5) {
@@ -124,7 +136,7 @@ public class GameFrame extends JFrame {
                     for (int i = 0; i < 1000; i++) {
                         int x = rand.nextInt(getRectangleX(), getRectangleX() + getRectangleWidth());
                         int y = rand.nextInt(getRectangleY(), getRectangleY() + getRectangleHeight());
-                        circles.add(new Circle(x, y, cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                        circles.add(new Circle(x, y, cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass(), currentShape));
                     }
                     panel.repaint();
                     typedCode = "";
@@ -188,16 +200,26 @@ public class GameFrame extends JFrame {
     }
 
     private JPanel getjPanel(ArrayList<Circle> circles, ArrayList<Rectangle> obstacles) {
-        JPanel panel = new JPanel() {
+        return new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 g.setColor(Theme.ColorGameFrame.panel);
                 g.fillRect(getRectangleX(), getRectangleY(), getRectangleWidth(), getRectangleHeight());
-
+                setBackground(Theme.ColorGameFrame.panelBackground);
                 for (Circle circle : circles) {
                     g.setColor(circle.color);
-                    g.fillOval(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
+                    switch (circle.shape) {
+                        case "oval" ->
+                                g.fillOval(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
+                        case "square" ->
+                                g.fillRect(circle.x - circle.radius, circle.y - circle.radius, circle.radius * 2, circle.radius * 2);
+                        case "triangle" -> {
+                            int[] xPoints = {circle.x, circle.x - circle.radius, circle.x + circle.radius};
+                            int[] yPoints = {circle.y - circle.radius, circle.y + circle.radius, circle.y + circle.radius};
+                            g.fillPolygon(xPoints, yPoints, 3);
+                        }
+                    }
                 }
 
                 g.setColor(Theme.ColorGameFrame.rectangle);
@@ -209,21 +231,26 @@ public class GameFrame extends JFrame {
                 g.setFont(new Font("Arial", Font.PLAIN, 20));
                 g.drawString("FPS: " + fps, getWidth() - 120, 30);
                 g.setColor(Theme.ColorGameFrame.ballsCounter);
-                g.drawString("Balls: " + circles.size(), 10, 30);
-
-
-                g.setColor(Theme.ColorGameFrame.ovalColor);
+                g.drawString("shapes: "+ circles.size(), 10, 30);
+                g.setColor(Theme.ColorGameFrame.shapeBorderColor);
                 Point mousePosition = getMousePosition();
                 if (mousePosition != null) {
                     int cursorX = mousePosition.x;
                     int cursorY = mousePosition.y;
-                    g.drawOval(cursorX - cursorRadius, cursorY - cursorRadius, cursorRadius * 2, cursorRadius * 2);
+                    switch (currentShape) {
+                        case "oval" ->
+                                g.drawOval(cursorX - cursorRadius, cursorY - cursorRadius, cursorRadius * 2, cursorRadius * 2);
+                        case "square" ->
+                                g.drawRect(cursorX - cursorRadius, cursorY - cursorRadius, cursorRadius * 2, cursorRadius * 2);
+                        case "triangle" -> {
+                            int[] xPoints = {cursorX, cursorX - cursorRadius, cursorX + cursorRadius};
+                            int[] yPoints = {cursorY - cursorRadius, cursorY + cursorRadius, cursorY + cursorRadius};
+                            g.drawPolygon(xPoints, yPoints, 3);
+                        }
+                    }
                 }
             }
-
         };
-        panel.setBackground(Theme.ColorGameFrame.panelBackground);
-        return panel;
     }
 
     private int getRectangleX() {
@@ -338,13 +365,15 @@ public class GameFrame extends JFrame {
         JTextArea textArea = new JTextArea("""
                 Balls Simulator - Rules
 
-                Left click - add ball
+                Left-click to create circles
                 Right click - add or remove obstacle
-                Balls can only be added in the black rectangle
-                The balls disappear after 20 seconds
-                Scroll up or down to change oval radius
-                Click C to clear all Balls
-                Type kokon and create 1000 balls
+                Shapes can only be added in the black rectangle
+                The shapes disappear after 20 seconds
+                Scroll up or down to change border size
+                Press C to clear all shapes
+                Press X to clear all obstacles
+                Press Tab to change the shape of new circles (Oval, Square, Triangle)
+                Type kokon and create 1000 shapes
                 Click OK to close""");
         textArea.setEditable(false);
         textArea.setBackground(Theme.ColorGameFrame.JTextAreaBackground);
@@ -355,3 +384,4 @@ public class GameFrame extends JFrame {
 
     }
 }
+
