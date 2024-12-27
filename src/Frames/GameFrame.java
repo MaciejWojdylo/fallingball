@@ -113,7 +113,7 @@ public class GameFrame extends JFrame {
             public void keyPressed(KeyEvent e) {
                 char key = e.getKeyChar();
                 if(key == 'c'){
-                    circles.removeAll(circles);
+                    circles.clear();
                 }
                 typedCode += key;
                 if (typedCode.length() > 5) {
