@@ -13,6 +13,8 @@ public class Theme {
         public final static Color infoDialogBackground = Color.BLACK;
         public final static Color JtextAreaForeground = new Color(200,196,196);
         public final static Color JTextAreaBackground = Color.BLACK;
+        public final static Color radiusLabelForeground = Color.WHITE;
+        public final static Color ovalColor = Color.WHITE;
 
     }
 }

@@ -18,8 +18,10 @@ public class GameFrame extends JFrame {
     private static int frames = 0;
     private static int fps = 0;
     private static String typedCode = "";
-    private static final int lowerBoundRadius = 29;
-    private static final int upperBoundRadius = 50;
+    private static final int lowerBoundRadius = 1;
+    private static final int upperBoundRadius = 100;
+    private int cursorRadius = 30;
+
 
     GameFrame(Dimension screenSize) {
         setTitle("Game");
@@ -36,14 +38,17 @@ public class GameFrame extends JFrame {
         infoButton.addActionListener(_ -> showInfoDialog());
         infoButton.setFocusPainted(false);
         panel.add(infoButton);
+
+        JLabel radiusLabel = new JLabel("Current radius: " + cursorRadius);
+        radiusLabel.setForeground(Theme.ColorGameFrame.radiusLabelForeground);
+        panel.add(radiusLabel);
+
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (isInRectangle(e.getX(), e.getY())) {
-                        Random rand = new Random();
-                        int radius = rand.nextInt(lowerBoundRadius, upperBoundRadius) + 1;
-                        circles.add(new Circle(e.getX(), e.getY(), radius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                        circles.add(new Circle(e.getX(), e.getY(), cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
                     }
                 } else if (SwingUtilities.isRightMouseButton(e)) {
                     if (isInRectangle(e.getX(), e.getY())) {
@@ -81,10 +86,35 @@ public class GameFrame extends JFrame {
             }
         });
 
+        panel.addMouseWheelListener(e -> {
+            if (e.getWheelRotation() < 0) {
+                cursorRadius = Math.min(cursorRadius + 1, upperBoundRadius);
+            } else {
+                cursorRadius = Math.max(cursorRadius - 1, lowerBoundRadius);
+            }
+            radiusLabel.setText("Current radius: " + cursorRadius);
+            panel.repaint();
+        });
+        panel.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Toolkit toolkit = Toolkit.getDefaultToolkit();
+                Image invisableCursorImage = toolkit.createImage(new byte[0]);
+                Cursor invisibleCursor = toolkit.createCustomCursor(
+                        invisableCursorImage, new Point(e.getX(), e.getY()), "InvisibleCursor"
+                );
+                panel.setCursor(invisibleCursor);
+                panel.repaint();
+            }
+        });
+
         panel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 char key = e.getKeyChar();
+                if(key == 'c'){
+                    circles.removeAll(circles);
+                }
                 typedCode += key;
                 if (typedCode.length() > 5) {
                     typedCode = typedCode.substring(typedCode.length() - 5);
@@ -94,8 +124,7 @@ public class GameFrame extends JFrame {
                     for (int i = 0; i < 1000; i++) {
                         int x = rand.nextInt(getRectangleX(), getRectangleX() + getRectangleWidth());
                         int y = rand.nextInt(getRectangleY(), getRectangleY() + getRectangleHeight());
-                        int randomRadius = new Random().nextInt(lowerBoundRadius,upperBoundRadius) + 1;
-                        circles.add(new Circle(x, y, randomRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
+                        circles.add(new Circle(x, y, cursorRadius, getRandomColor(), getRandomVelocity(), getRandomVelocity(), getRandomMass()));
                     }
                     panel.repaint();
                     typedCode = "";
@@ -181,7 +210,17 @@ public class GameFrame extends JFrame {
                 g.drawString("FPS: " + fps, getWidth() - 120, 30);
                 g.setColor(Theme.ColorGameFrame.ballsCounter);
                 g.drawString("Balls: " + circles.size(), 10, 30);
+
+
+                g.setColor(Theme.ColorGameFrame.ovalColor);
+                Point mousePosition = getMousePosition();
+                if (mousePosition != null) {
+                    int cursorX = mousePosition.x;
+                    int cursorY = mousePosition.y;
+                    g.drawOval(cursorX - cursorRadius, cursorY - cursorRadius, cursorRadius * 2, cursorRadius * 2);
+                }
             }
+
         };
         panel.setBackground(Theme.ColorGameFrame.panelBackground);
         return panel;
@@ -303,6 +342,9 @@ public class GameFrame extends JFrame {
                 Right click - add or remove obstacle
                 Balls can only be added in the black rectangle
                 The balls disappear after 20 seconds
+                Scroll up or down to change oval radius
+                Click C to clear all Balls
+                Type kokon and create 1000 balls
                 Click OK to close""");
         textArea.setEditable(false);
         textArea.setBackground(Theme.ColorGameFrame.JTextAreaBackground);
