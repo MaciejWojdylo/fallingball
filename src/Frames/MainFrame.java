@@ -5,6 +5,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
+
 public  class MainFrame extends JFrame {
     private static Dimension gameResolutionSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -106,31 +108,35 @@ class ResolutionFrame extends JFrame {
                 "1920 x 1080", "2560 x 1440", "3840 x 2160",
                 "5120 x 2880", "7680 x 4320"
         };
-        CheckboxGroup group = new CheckboxGroup();
-        Panel resolutionPanel = new Panel(new GridLayout(resolutionTable.length + 1, 1));
+        ButtonGroup group = new ButtonGroup();
+        Panel resolutionPanel = new Panel();
+        resolutionPanel.setLayout(new BoxLayout(resolutionPanel, BoxLayout.Y_AXIS));
         int screenWidth = screenSize.width;
         int visableCheckboxes = 0;
         for (String resolution : resolutionTable) {
             String[] dimensions = resolution.split(" x ");
             int width = Integer.parseInt(dimensions[0]);
             if (width <= screenWidth) {
-                Checkbox checkbox = new Checkbox(resolution, group, false);
+                JRadioButton checkbox = new JRadioButton(resolution);
+                checkbox.setFont(new Font("Arial", Font.PLAIN, 18));
+                group.add(checkbox);
                 resolutionPanel.add(checkbox);
                 visableCheckboxes++;
             }
         }
         JButton acceptButton = getjButton(group);
+        resolutionPanel.add(Box.createVerticalStrut(20));
         resolutionPanel.add(acceptButton);
-        int elementHeight = 30;
+        int elementHeight = 40;
         int margin = 50;
         int windowHeight = visableCheckboxes * elementHeight + margin;
-        setSize(300, Math.min(windowHeight, screenSize.height - 50));
+        setSize(400, Math.min(windowHeight, screenSize.height - 50));
         add(resolutionPanel);
     }
 
-    private JButton getjButton(CheckboxGroup group) {
+    private JButton getjButton(ButtonGroup group) {
         JButton acceptButton = new JButton("Accept");
-        acceptButton.setPreferredSize(new Dimension(100, 150));
+        acceptButton.setPreferredSize(new Dimension(150, 50));
         acceptButton.setBackground(Color.BLACK);
         acceptButton.setForeground(Color.WHITE);
         acceptButton.setFocusPainted(false);
@@ -138,9 +144,9 @@ class ResolutionFrame extends JFrame {
         acceptButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Checkbox selectedCheckbox = group.getSelectedCheckbox();
-                if (selectedCheckbox != null) {
-                    String resolution = selectedCheckbox.getLabel();
+                ButtonModel selectedModel = group.getSelection();
+                if (selectedModel != null) {
+                    String resolution = selectedModel.getActionCommand();
                     String[] parts = resolution.split(" x ");
                     Dimension resolutionSize = new Dimension(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
                     MainFrame.setGameResolutionSize(resolutionSize);
@@ -148,6 +154,9 @@ class ResolutionFrame extends JFrame {
                 dispose();
             }
         });
+        for(AbstractButton button : Collections.list(group.getElements())) {
+            button.setActionCommand(button.getText());
+        }
         return acceptButton;
     }
 }
