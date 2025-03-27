@@ -1,4 +1,4 @@
-# Balls Simulator 🎾💨  
+# Balls Simulator
 
 ## 🌍 English  
 
