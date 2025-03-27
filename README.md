@@ -40,7 +40,7 @@
 ---
 
 ### 🔧 Requirements  
-- Java 17+  
+- Java 22+  
 - IntelliJ IDEA / Eclipse (optional)  
 
 ---
